@@ -1,0 +1,6 @@
+Nombre del graduado,Correo institucional,Hora de ceremonia,Programa,Celular,Cédula
+Ana María Pérez Ruiz,ana.perez@unicesmag.edu.co,10:00 a. m.,Ingeniería de Sistemas,3001234567,1000000001
+Carlos Andrés Gómez,carlos.gomez@unicesmag.edu.co,10:00 a. m.,Derecho,+57 310 555 0102,
+Laura Sofía Díaz,laura.diaz@unicesmag.edu.co,3:00 p. m.,Ingeniería de Sistemas,,1000000003
+Fila con error de ejemplo,correo-invalido,10:00 a. m.,Derecho,3001234567,
+Duplicado de ejemplo,ana.perez@unicesmag.edu.co,10:00 a. m.,Derecho,3001234567,
