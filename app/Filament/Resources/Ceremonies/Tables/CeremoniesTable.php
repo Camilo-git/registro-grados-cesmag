@@ -13,11 +13,6 @@ class CeremoniesTable
     public static function configure(Table $table): Table
     {
         return $table
-            // modifyQueryUsing: en vez de usar ->counts() (que solo sirve para
-            // conteos simples), aquí armamos manualmente varios withCount() en
-            // una sola consulta, incluidos conteos CONDICIONALES (solo los que
-            // tienen attended_at). Esto evita traer cada graduado/invitado
-            // completo a PHP solo para contarlos.
             ->modifyQueryUsing(fn ($query) => $query->withCount([
                 'graduates',
                 'graduates as graduates_attended_count' => fn ($q) => $q->whereNotNull('attended_at'),
@@ -32,41 +27,42 @@ class CeremoniesTable
                     ->label('Fecha real')
                     ->dateTime()
                     ->sortable(),
+
+                // badge() con color fijo por valor (2 o 3): un cupo mayor
+                // se resalta en amarillo, para que se note de un vistazo
+                // qué ceremonias tienen la excepción de 3 invitados.
                 TextColumn::make('max_guests')
                     ->label('Cupo invitados')
-                    ->numeric(),
+                    ->badge()
+                    ->color(fn (int $state) => $state >= 3 ? 'warning' : 'gray'),
 
-                // --- Bloque de graduandos de esta ceremonia ---
                 TextColumn::make('graduates_count')
-                    ->label('Graduandos inscritos')
+                    ->label('Graduandos')
+                    ->numeric()
+                    ->alignEnd()
                     ->sortable(),
                 TextColumn::make('graduates_attended_count')
-                    ->label('Graduandos que ingresaron')
+                    ->label('Ingresaron')
+                    ->numeric()
+                    ->alignEnd()
                     ->sortable()
                     ->color('success'),
-                // getStateUsing: no es una columna real de la base de datos,
-                // se calcula al vuelo restando los dos conteos de arriba.
-                TextColumn::make('graduates_pending')
-                    ->label('Graduandos por ingresar')
-                    ->getStateUsing(fn ($record) => $record->graduates_count - $record->graduates_attended_count)
-                    ->color(fn ($state) => $state > 0 ? 'warning' : 'success'),
-
-                // --- Bloque de invitados de esta ceremonia ---
                 TextColumn::make('guests_count')
-                    ->label('Invitados registrados')
+                    ->label('Invitados')
+                    ->numeric()
+                    ->alignEnd()
                     ->sortable(),
                 TextColumn::make('guests_attended_count')
-                    ->label('Invitados que ingresaron')
+                    ->label('Ingresaron')
+                    ->numeric()
+                    ->alignEnd()
                     ->sortable()
                     ->color('success'),
-                TextColumn::make('guests_pending')
-                    ->label('Invitados por ingresar')
-                    ->getStateUsing(fn ($record) => $record->guests_count - $record->guests_attended_count)
-                    ->color(fn ($state) => $state > 0 ? 'warning' : 'success'),
 
                 TextColumn::make('capacity')
                     ->label('Cupo graduandos')
                     ->numeric()
+                    ->alignEnd()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('key')
                     ->label('Identificador interno')

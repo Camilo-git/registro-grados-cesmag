@@ -17,6 +17,12 @@ class ProgramsTable
                 TextColumn::make('name')
                     ->label('Programa')
                     ->searchable(),
+                TextColumn::make('graduates_count')
+                    ->label('Graduandos')
+                    ->counts('graduates')
+                    ->numeric()
+                    ->alignEnd()
+                    ->sortable(),
                 TextColumn::make('key')
                     ->label('Identificador interno')
                     ->searchable()
@@ -25,13 +31,6 @@ class ProgramsTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                // counts('graduates'): mismo patrón que en CeremoniesTable, cuenta
-                // sin cargar cada graduado completo. Resuelve el desglose "por
-                // programa" sin tocar el widget de arriba.
-                TextColumn::make('graduates_count')
-                    ->label('Graduandos')
-                    ->counts('graduates')
-                    ->sortable(),
                 TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()

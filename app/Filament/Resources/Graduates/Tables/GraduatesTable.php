@@ -6,7 +6,6 @@ use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -34,18 +33,46 @@ class GraduatesTable
                 TextColumn::make('phone')
                     ->label('Celular')
                     ->searchable(),
-                IconColumn::make('profile_confirmed_at')
-                    ->label('Perfil confirmado')
-                    ->boolean()
-                    ->getStateUsing(fn ($record) => $record->profile_confirmed_at !== null),
-                IconColumn::make('attended_at')
-                    ->label('Asistió')
-                    ->boolean()
-                    ->getStateUsing(fn ($record) => $record->attended_at !== null),
+
+                // Columna "Estado": resume en una sola etiqueta de color lo
+                // que antes eran dos íconos separados (perfil confirmado,
+                // asistió). badge() la dibuja como una píldora de color,
+                // más fácil de leer de un vistazo que varios íconos sueltos.
+                // getStateUsing() calcula el texto; color() decide el color
+                // según ESE MISMO texto (no se repite la lógica dos veces).
+                TextColumn::make('status')
+                    ->label('Estado')
+                    ->badge()
+                    ->getStateUsing(function ($record) {
+                        if ($record->removed_from_list_at !== null) {
+                            return 'Retirado';
+                        }
+                        if ($record->attended_at !== null) {
+                            return 'Asistió';
+                        }
+                        if ($record->profile_confirmed_at !== null) {
+                            return 'Inscrito';
+                        }
+
+                        return 'Pendiente';
+                    })
+                    ->color(fn (string $state) => match ($state) {
+                        'Asistió' => 'success',
+                        'Inscrito' => 'info',
+                        'Pendiente' => 'warning',
+                        'Retirado' => 'gray',
+                    }),
+
+                // alignEnd(): alinea el número a la derecha, convención
+                // estándar para que las cantidades sean fáciles de comparar
+                // entre filas (en vez de quedar pegadas al texto de al lado).
                 TextColumn::make('guests_count')
                     ->label('Invitados')
                     ->counts('guests')
+                    ->numeric()
+                    ->alignEnd()
                     ->sortable(),
+
                 TextColumn::make('birth_date')
                     ->label('Nacimiento')
                     ->date()
@@ -53,11 +80,6 @@ class GraduatesTable
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('address')
                     ->label('Dirección')
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('removed_from_list_at')
-                    ->label('Retirado')
-                    ->dateTime()
-                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->dateTime()
@@ -72,10 +94,6 @@ class GraduatesTable
                 //
             ])
             ->recordActions([
-                // Botón simple de asistencia SOLO para el graduado (sin tocar
-                // invitados). Es el panel "solo graduados" que pediste desde
-                // el inicio del proyecto, aparte del panel completo de la
-                // página Attendance que cruza graduado + invitados.
                 Action::make('toggleAttendance')
                     ->label(fn ($record) => $record->attended_at !== null ? 'Desmarcar asistencia' : 'Marcar asistencia')
                     ->icon(fn ($record) => $record->attended_at !== null ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
